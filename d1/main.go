@@ -2,11 +2,38 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 )
+
+type Queue []int
+
+func (q Queue) Len() int {
+	return len(q)
+}
+
+func (q Queue) Less(i int, j int) bool {
+	return q[i] < q[j]
+}
+
+func (q Queue) Swap(i int, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
+func (q *Queue) Push(x interface{}) {
+	*q = append(*q, x.(int))
+}
+
+func (q *Queue) Pop() interface{} {
+	old := *q
+	n := len(old)
+	element := old[n-1]
+	*q = old[0 : n-1]
+	return element
+}
 
 func main() {
 	path := os.Getenv("D1_PATH")
@@ -17,7 +44,9 @@ func main() {
 	defer file.Close()
 
 	var caloriesOfOne int
-	var caloriesOfAll []int
+
+	pq := &Queue{}
+	heap.Init(pq)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -38,21 +67,19 @@ func main() {
 			}
 			caloriesOfOne += product
 		} else {
-			caloriesOfAll = append(caloriesOfAll, caloriesOfOne)
+			if pq.Len() == 0 {
+				heap.Push(pq, caloriesOfOne)
+			} else {
+				qv := heap.Pop(pq)
+				if qv.(int) < caloriesOfOne {
+					heap.Push(pq, caloriesOfOne)
+				} else {
+					heap.Push(pq, qv)
+				}
+			}
 			caloriesOfOne = 0
 		}
 	}
-	fmt.Println(caloriesOfAll)
-	max := findMax(caloriesOfAll)
-	fmt.Printf("maximum calories: %v", max)
-}
 
-func findMax(input []int) int {
-	var max int
-	for _, v := range input {
-		if v > max {
-			max = v
-		}
-	}
-	return max
+	fmt.Printf("maximum calories: %v", heap.Pop(pq))
 }
