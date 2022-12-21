@@ -7,13 +7,24 @@ import (
 	"os"
 )
 
+type Move int
+
 const (
-	ROCK     = 1
-	PAPER    = 2
-	SCISSORS = 3
-	LOSS     = 0
-	DRAW     = 3
-	VICTORY  = 6
+	ROCK Move = iota + 1
+	PAPER
+	SCISSORS
+)
+
+type Result int
+
+const (
+	LOSS Result = iota // LOSS = 0
+	_
+	_
+	DRAW // DRAW =3
+	_
+	_
+	VICTORY // VICTORY = 6
 )
 
 func main() {
@@ -31,7 +42,7 @@ func main() {
 		games = append(games, scanner.Text())
 	}
 
-	var totalScore int
+	var totalScore Result
 	for _, game := range games {
 		totalScore += calculatePerRound(game)
 	}
@@ -40,8 +51,8 @@ func main() {
 
 }
 
-func calculatePerRound(game string) int {
-	participants := map[string]int{
+func calculatePerRound(game string) Result {
+	participants := map[string]Move{
 		"A": ROCK,
 		"X": ROCK,
 		"B": PAPER,
@@ -51,11 +62,12 @@ func calculatePerRound(game string) int {
 	}
 	p1 := participants[string(game[0])]
 	p2 := participants[string(game[2])]
-	result := calculate(p1, p2)
-	return result + p2
+	roundResult := calculate(p1, p2)
+	finalScore := int(roundResult) + int(p2)
+	return Result(finalScore)
 }
 
-func calculate(player1, player2 int) int {
+func calculate(player1, player2 Move) Result {
 	if player2 == player1 {
 		return DRAW
 	} else if player2 == ROCK && player1 == SCISSORS {
